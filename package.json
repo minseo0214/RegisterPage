@@ -4,6 +4,11 @@
   "main": "index.js",
   "author": "minseo0214 <minseo>",
   "license": "MIT",
+  "scripts": {
+    "watch:server": "esbuild /src/server/index.tsx --bundle outdir==/build/server.js  --platform=node --watch",
+    "watch:client": "esbuild /src/client/index.tsx --bundle outdir==/build/client.js   --watch",
+    "server": "nodemon --watch build/server.js "
+  },
   "dependencies": {
     "koa": "^2.13.4",
     "koa-router": "^11.0.1",

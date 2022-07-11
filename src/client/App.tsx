@@ -1,8 +1,11 @@
 import React from 'react'
+import './styles.css'
 
+//CRUD (Create Read Update Delete)
 export default function App() {
   // 회원 가입 페이지
   const register = () => {
+    return '!!!'
     return (
       <div className="container">
         Welcome
@@ -30,7 +33,7 @@ export default function App() {
     )
   }
 
-  return <div> hello</div>
+  return register()
 }
 
 // 회원가입

@@ -5,11 +5,12 @@
   "author": "minseo0214 <minseo>",
   "license": "MIT",
   "scripts": {
-    "watch:server": "esbuild /src/server/index.tsx --bundle outdir==/build/server.js  --platform=node --watch",
-    "watch:client": "esbuild /src/client/index.tsx --bundle outdir==/build/client.js   --watch",
-    "server": "nodemon --watch build/server.js "
+    "watch:server": "esbuild --bundle src/server/index.tsx --outfile=build/server.js --platform=node --external:pg-native --watch",
+    "watch:client": "esbuild --bundle src/client/index.tsx --outfile=build/client.js --watch",
+    "server": "nodemon build/server.js"
   },
   "dependencies": {
+    "fs": "^0.0.1-security",
     "koa": "^2.13.4",
     "koa-router": "^11.0.1",
     "koa-static": "^5.0.0",
@@ -19,6 +20,7 @@
     "slonik": "^28.1.1"
   },
   "devDependencies": {
+    "@types/node": "^18.0.3",
     "esbuild": "^0.14.48",
     "typescript": "^4.7.4"
   }

@@ -4,6 +4,7 @@ import './styles.css'
 //CRUD (Create Read Update Delete)
 export default function App() {
   // 회원 가입 페이지
+  const [id, setId] = React.useState(0)
   const [name, setName] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
@@ -166,19 +167,84 @@ export default function App() {
   }
 
   //같은 브라우저 세션 내에서는 로그인 정보가 유지되야함. 쿠키에 액세스 토큰을 저장, JWT 사용
-  //글 쓰고, 지우기 가능해야함.
   //로그인 정보 유지되게하기
-  //전체 공개가 되는 방식으로 생각함
-  //피드를 최신 순으로 나열
-  const rounge = () => {
+  interface textInform {
+    id: number
+    user_id: number
+    text: string
+  }
+
+  const [text, setText] = React.useState('')
+  const [textList, setTextList] = React.useState<textInform[]>()
+
+  const refetch = React.useCallback(async () => {
+    const fetched = await fetch(`/text`)
+    const data = await fetched.json()
+    setTextList(data.rows)
+  }, [])
+
+  const textBox = (text: textInform) => {
     return (
-      <div>
-        <div></div>
-        <div></div>
-        <div></div>
+      <div key={text.id}>
+        <div>{text.text}</div>
+        <button
+          onClick={() => {
+            if (id === text.user_id) {
+              deleteText(text.id)
+            }
+          }}
+        ></button>
       </div>
     )
   }
 
-  return login()
+  const createText = async (user_id: number, text: string) => {
+    const fetched = await fetch(`/text/${user_id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: text,
+      }),
+    })
+    refetch()
+  }
+
+  const deleteText = async (id: number) => {
+    await fetch(`/text/${id}`, {
+      method: 'DELETE',
+    })
+    refetch()
+  }
+
+  React.useEffect(() => {
+    refetch()
+  }, [refetch])
+
+  const chatting = () => {
+    return (
+      <div>
+        <div>Chatting</div>
+        <div>
+          <input
+            placeholder="Input Text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key == 'Enter') {
+                if (text !== '') {
+                  createText(id, text)
+                  setText('')
+                }
+              }
+            }}
+          ></input>
+        </div>
+        {textList && textList.map((text: textInform) => textBox(text))}
+      </div>
+    )
+  }
+
+  return chatting()
 }

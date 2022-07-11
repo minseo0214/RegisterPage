@@ -49,6 +49,24 @@ router.post('/login', async (ctx) => {
   }
 })
 
+router.get('/text', async (ctx) => {
+  const data = await pool.query(sql`SELECT * FROM text ORDER BY date DESC`)
+  ctx.body = JSON.stringify(data)
+})
+
+router.post('/text/:user_id', async (ctx) => {
+  const { user_id } = ctx.params
+  const { text } = ctx.request.body
+  pool.query(sql`insert into text(user_id,text) values (${user_id},${text})`)
+  ctx.status = 200
+})
+
+router.delete('/text/:id', async (ctx) => {
+  const { id } = ctx.params
+  pool.query(sql`delete from text where id=${id}`)
+  ctx.status = 200
+})
+
 app.use(serve('./build'))
 app.use(router.routes())
 app.listen(4000)

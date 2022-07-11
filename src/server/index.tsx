@@ -23,14 +23,30 @@ router.get('/', async (ctx) => {
 })
 
 router.post('/user', async (ctx) => {
-  console.log(ctx.request.body)
   const { name, email, password } = ctx.request.body
-  const encrypt = bcrypt.hashSync(password, 10)
+  console.log(password)
+  const encrypt = await bcrypt.hash(password, 10)
+  console.log('in', encrypt)
   pool.query(
     sql`INSERT INTO users(name, email, password) VALUES (${name}, ${email}, ${encrypt})`
   )
-
   ctx.status = 200
+})
+
+router.post('/login', async (ctx) => {
+  const { email, password } = ctx.request.body
+  const dbPassword = pool.query(
+    sql`select name,password from users where email=${email}`
+  )
+  const data = (await dbPassword).rows
+  const check = await bcrypt.compare(password, data[0].password)
+  if (check) {
+    ctx.status = 200
+    // POST 상태에서 정보를 전달할 수 있나?
+    ctx.body = JSON.stringify(data[0].name)
+  } else {
+    ctx.status = 400
+  }
 })
 
 app.use(serve('./build'))

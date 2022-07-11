@@ -7,27 +7,48 @@ export default function App() {
   const [name, setName] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
+  const [checkPassword, setCheckPassword] = React.useState('')
 
   // 정상적인 이메일 포맷인지 확인
-  const isEmail = (email) => {
+  const isEmail = (email: string) => {
     const emailRegex =
       /^(([^<>()\[\].,;:\s@"]+(\.[^<>()\[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i
 
     return emailRegex.test(email)
   }
-  // 비밀번호 보안상 적절한지 확인
-  // 비밀번호와 비밀번호 확인란이 동일해야함
-  // 비밀번호 가리기
-  // 비밀번호 DB에 저장할 때는 암호화
+
+  const isSamePassword = (password: string, checkPassword: string) => {
+    return password === checkPassword
+  }
+
+  const isGoodPassword = (password: string) => {
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/
+    return passwordRegex.test(password)
+  }
 
   const createUser = async (id: number) => {
-    await fetch(`/${id}`, {
+    // 네 개를 다 채웠는지 확인해야할까?
+    // if (!(isEmail(email) && isSamePassword(password, checkPassword))) {
+    //   alert('입력한 정보를 다시 확인해주세요')
+    //   return
+    // }
+
+    // if (!isGoodPassword(password)) {
+    //   alert(
+    //     '최소 8자, 최소 하나의 문자 및 하나의 숫자의 비밀번호를 사용해주세요'
+    //   )
+    //   return
+    // }
+
+    await fetch(`/user`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id,
+        name,
+        email,
+        password,
       }),
     }).then((res) => {
       if (res.ok) {
@@ -45,26 +66,49 @@ export default function App() {
         {/* username */}
         <div>
           username
-          <input placeholder="Eneter username" id="name"></input>
+          <input
+            placeholder="Eneter username"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          ></input>
         </div>
         {/* email */}
         <div>
           Email
-          <input placeholder="Enter email"></input>
+          <input
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          ></input>
         </div>
         {/* password */}
         <div>
-          Password
-          <input placeholder="Enter password"></input>
+          Password (최소 8자, 최소 하나의 문자 및 하나의 숫자의 비밀번호를
+          사용해주세요)
+          <input
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+          ></input>
         </div>
         {/* confirm password */}
         <div>
           Confirm Password
-          <input placeholder="Enter password again"></input>
+          <input
+            placeholder="Enter password again"
+            value={checkPassword}
+            onChange={(e) => setCheckPassword(e.target.value)}
+            type="password"
+          ></input>
         </div>
         <button onClick={() => createUser(1)}> submit </button>
       </div>
     )
+  }
+
+  const login = () => {
+    return 'hello'
   }
 
   return register()

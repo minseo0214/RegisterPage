@@ -10,6 +10,8 @@
     "server": "nodemon build/server.js"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
+    "bcryptjs": "^2.4.3",
     "fs": "^0.0.1-security",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
@@ -21,6 +23,7 @@
     "slonik": "^28.1.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/node": "^18.0.3",
     "esbuild": "^0.14.48",
     "typescript": "^4.7.4"

@@ -62,12 +62,11 @@ router.post('/user', async (ctx) => {
 router.post('/login', async (ctx) => {
   const { email, password } = ctx.request.body
   const dbPassword = pool.query(
-    sql`select name,password from users where email=${email}`
+    sql`select password from users where email=${email}`
   )
   const data = (await dbPassword).rows
   const check = await bcrypt.compare(password, data[0].password)
   if (check) {
-    ctx.status = 200
     const accessToken = await generateToken(
       { user_id: data[0].user_id },
       { subject: 'access_token', expiresIn: '1h' }
@@ -76,9 +75,18 @@ router.post('/login', async (ctx) => {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     })
+    ctx.response.status = 200
   } else {
     ctx.status = 400
   }
+})
+
+router.get('/:loginEmail', async (ctx) => {
+  const { loginEmail } = ctx.params
+  const userId = await pool.query(
+    sql`select id from users where email=${loginEmail}`
+  )
+  ctx.body = JSON.stringify(userId)
 })
 
 router.get('/text', async (ctx) => {

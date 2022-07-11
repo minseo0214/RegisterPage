@@ -3,9 +3,9 @@ import React from 'react'
 import './styles.css'
 
 //CRUD (Create Read Update Delete)
+//userId를 저장해서, 본인이 작성한 글만 지울 수 있도록 하려했습니다.
 export default function App() {
-  const [id, setId] = React.useState(0)
-  const [isLogin, setIsLogin] = React.useState(false)
+  const [userId, setUserId] = React.useState(0)
 
   // 회원 가입 페이지
   const [name, setName] = React.useState('')
@@ -116,9 +116,6 @@ export default function App() {
   // 로그인
   const [loginEmail, setLoginEmail] = React.useState('')
   const [loginPassword, setLoginPassword] = React.useState('')
-  const [tokenCookie, setTokenCookie] = React.useState()
-  // DB에서 받아온 user의 이름을 표시하기 위함.
-  const [user, setUser] = React.useState('')
 
   const loginUser = async () => {
     const res = await fetch(`/login`, {
@@ -132,18 +129,17 @@ export default function App() {
       }),
     }).then((res) => {
       if (!res.ok) {
-        alert('비밀번호가 잘못되었습니다.')
+        alert('아이디나 비밀번호가 틀렸습니다')
       }
-      console.log(res.ok)
     })
   }
 
   const login = () => {
     return (
       <div>
-        {/* id */}
+        {/* email */}
         <div>
-          id
+          email
           <input
             placeholder="Input Email"
             value={loginEmail}
@@ -166,8 +162,6 @@ export default function App() {
     )
   }
 
-  //같은 브라우저 세션 내에서는 로그인 정보가 유지되야함. 쿠키에 액세스 토큰을 저장, JWT 사용
-  //로그인 정보 유지되게하기
   interface textInform {
     id: number
     user_id: number
@@ -189,7 +183,7 @@ export default function App() {
         <div>{text.text}</div>
         <button
           onClick={() => {
-            if (id === text.user_id) {
+            if (userId === text.user_id) {
               deleteText(text.id)
             }
           }}
@@ -234,7 +228,7 @@ export default function App() {
             onKeyPress={(e) => {
               if (e.key == 'Enter') {
                 if (text !== '') {
-                  createText(id, text)
+                  createText(userId, text)
                   setText('')
                 }
               }

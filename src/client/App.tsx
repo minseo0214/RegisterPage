@@ -1,10 +1,13 @@
 import React from 'react'
+
 import './styles.css'
 
 //CRUD (Create Read Update Delete)
 export default function App() {
-  // 회원 가입 페이지
   const [id, setId] = React.useState(0)
+  const [isLogin, setIsLogin] = React.useState(false)
+
+  // 회원 가입 페이지
   const [name, setName] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
@@ -113,11 +116,12 @@ export default function App() {
   // 로그인
   const [loginEmail, setLoginEmail] = React.useState('')
   const [loginPassword, setLoginPassword] = React.useState('')
+  const [tokenCookie, setTokenCookie] = React.useState()
   // DB에서 받아온 user의 이름을 표시하기 위함.
   const [user, setUser] = React.useState('')
 
   const loginUser = async () => {
-    await fetch(`/login`, {
+    const res = await fetch(`/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -127,14 +131,10 @@ export default function App() {
         password: loginPassword,
       }),
     }).then((res) => {
-      // post에서 body를 받아오는 방법?
-      console.log(res.body)
-      if (res.ok) {
-        alert(`${res.body}님 환영합니다.`)
-        // history.push(`/`)
-      } else {
+      if (!res.ok) {
         alert('비밀번호가 잘못되었습니다.')
       }
+      console.log(res.ok)
     })
   }
 
@@ -246,5 +246,11 @@ export default function App() {
     )
   }
 
-  return chatting()
+  return (
+    <div>
+      <div>{register()}</div>
+      <div>{login()}</div>
+      <div>{chatting()}</div>
+    </div>
+  )
 }

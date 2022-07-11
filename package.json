@@ -10,16 +10,20 @@
     "server": "nodemon build/server.js"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^8.5.8",
     "bcrypt": "^5.0.1",
     "bcryptjs": "^2.4.3",
     "fs": "^0.0.1-security",
+    "jsonwebtoken": "^8.5.1",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
+    "koa-jwt": "^4.0.3",
     "koa-router": "^11.0.1",
     "koa-static": "^5.0.0",
     "nodemon": "^2.0.19",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.3.0",
     "slonik": "^28.1.1"
   },
   "devDependencies": {

@@ -5,9 +5,35 @@ import serve from 'koa-static'
 import bodyParser from 'koa-bodyparser'
 import { createPool, sql } from 'slonik'
 import bcrypt from 'bcryptjs'
+import jwt, { SignOptions } from 'jsonwebtoken'
+const SECRET_KEY = 'MySecretKey1$1$234'
+
+if (!SECRET_KEY) {
+  const error = new Error('InvalidSecretKeyError')
+  error.message = 'Secret key for JWT is missing.'
+  throw error
+}
+
+const generateToken = (payload: any, options: SignOptions): Promise<string> => {
+  const jwtOptions: SignOptions = {
+    issuer: 'songc.io', // 출처명
+    expiresIn: '7d', // 유효기간
+    ...options,
+  }
+  if (!jwtOptions.expiresIn) {
+    delete jwtOptions.expiresIn
+  }
+  return new Promise((resolve, reject) => {
+    jwt.sign(payload, SECRET_KEY, jwtOptions, (err, token) => {
+      if (err) reject(err)
+      token ? resolve(token) : false
+    })
+  })
+}
 
 const app = new Koa()
 app.use(bodyParser())
+
 const router = new Router()
 
 const pool = createPool(
@@ -42,8 +68,14 @@ router.post('/login', async (ctx) => {
   const check = await bcrypt.compare(password, data[0].password)
   if (check) {
     ctx.status = 200
-    // POST 상태에서 정보를 전달할 수 있나?
-    ctx.body = JSON.stringify(data[0].name)
+    const accessToken = await generateToken(
+      { user_id: data[0].user_id },
+      { subject: 'access_token', expiresIn: '1h' }
+    )
+    ctx.cookies.set('access_token', accessToken, {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    })
   } else {
     ctx.status = 400
   }

@@ -10,7 +10,6 @@
     "server": "nodemon build/server.js"
   },
   "dependencies": {
-    "@types/jsonwebtoken": "^8.5.8",
     "bcrypt": "^5.0.1",
     "bcryptjs": "^2.4.3",
     "fs": "^0.0.1-security",
@@ -28,7 +27,15 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/jsonwebtoken": "^8.5.8",
+    "@types/koa": "^2.13.4",
+    "@types/koa-bodyparser": "^4.3.7",
+    "@types/koa-router": "^7.4.4",
+    "@types/koa-static": "^4.0.2",
     "@types/node": "^18.0.3",
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
     "esbuild": "^0.14.48",
     "typescript": "^4.7.4"
   }

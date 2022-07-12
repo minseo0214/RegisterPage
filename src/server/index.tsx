@@ -6,6 +6,7 @@ import bodyParser from 'koa-bodyparser'
 import { createPool, sql } from 'slonik'
 import bcrypt from 'bcryptjs'
 import jwt, { SignOptions } from 'jsonwebtoken'
+
 const SECRET_KEY = 'MySecretKey1$1$234'
 
 if (!SECRET_KEY) {
@@ -25,8 +26,12 @@ const generateToken = (payload: any, options: SignOptions): Promise<string> => {
   }
   return new Promise((resolve, reject) => {
     jwt.sign(payload, SECRET_KEY, jwtOptions, (err, token) => {
-      if (err) reject(err)
-      token ? resolve(token) : false
+      if (err) {
+        reject(err)
+      }
+      if (token) {
+        resolve(token)
+      }
     })
   })
 }
@@ -59,15 +64,17 @@ router.post('/user', async (ctx) => {
 
 router.post('/login', async (ctx) => {
   const { email, password } = ctx.request.body
-  const dbPassword = pool.query(
-    sql`select password from users where email=${email}`
-  )
-  const data = (await dbPassword).rows
-  const check = await bcrypt.compare(password, data[0].password)
+  const savedPasswordAndUserId = (
+    await pool.query(
+      sql`select user_id, password from users where email=${email}`
+    )
+  ).rows[0]
+  const check = await bcrypt.compare(password, savedPasswordAndUserId.password)
   if (check) {
     // accessToken을 사용했더니 안보임..?
     const accessToken = await generateToken(
-      { user_id: data[0].user_id },
+      { user_id: savedPasswordAndUserId.user_id },
+      // review: 지금은 1시간만에 로그인이 풀립니다.
       { subject: 'access_token', expiresIn: '1h' }
     )
     ctx.cookies.set('access_token', accessToken, {
@@ -90,10 +97,12 @@ router.get('/user/:loginEmail', async (ctx) => {
 })
 
 router.get('/chatting', async (ctx) => {
+  // review: 코드상에선 chatting인데 테이블 이름은 text로 되어 있는 것 같습니다. 가능하면 일치시켜 주세요.
   const data = await pool.query(sql`SELECT * FROM text ORDER BY date DESC`)
   ctx.response.body = JSON.stringify(data)
 })
 
+// review: 유저 아이디를 직접 받는 것은 잘못된 방식입니다. ctx의 cookie로부터 유저 정보를 알아내야 합니다.
 router.post('/chatting/:user_id', async (ctx) => {
   const { user_id } = ctx.params
   const { text } = ctx.request.body

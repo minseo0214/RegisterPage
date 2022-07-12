@@ -5,7 +5,7 @@ import './styles.css'
 //CRUD (Create Read Update Delete)
 //userId를 저장해서, 본인이 작성한 글만 지울 수 있도록 하려했습니다.
 export default function App() {
-  const [userId, setUserId] = React.useState(0)
+  const [userId, setUserId] = React.useState<number>()
 
   // 회원 가입 페이지
   const [name, setName] = React.useState('')
@@ -60,12 +60,11 @@ export default function App() {
     }).then((res) => {
       if (res.ok) {
         alert('생성되었습니다.')
-        // history.push(`/`)
       }
     })
   }
 
-  const register = () => {
+  const RegistrationPage = () => {
     return (
       <div className="container">
         Welcome
@@ -76,7 +75,7 @@ export default function App() {
             placeholder="Eneter username"
             value={name}
             onChange={(e) => setName(e.target.value)}
-          ></input>
+          />
         </div>
         {/* email */}
         <div>
@@ -96,7 +95,7 @@ export default function App() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
-          ></input>
+          />
         </div>
         {/* confirm password */}
         <div>
@@ -106,9 +105,9 @@ export default function App() {
             value={checkPassword}
             onChange={(e) => setCheckPassword(e.target.value)}
             type="password"
-          ></input>
+          />
         </div>
-        <button onClick={() => createUser()}> submit </button>
+        <button onClick={() => createUser()}>submit</button>
       </div>
     )
   }
@@ -117,8 +116,8 @@ export default function App() {
   const [loginEmail, setLoginEmail] = React.useState('')
   const [loginPassword, setLoginPassword] = React.useState('')
 
-  const loginUser = async () => {
-    const res = await fetch(`/login`, {
+  const login = () => {
+    fetch(`/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -141,42 +140,44 @@ export default function App() {
     })
   }
 
-  const login = () => {
+  // review: 컴포넌트로 쪼개 주세요.
+  const LoginPage = () => {
     return (
       <div>
         {/* email */}
         <div>
           email
           <input
-            placeholder="Input Email"
+            placeholder="이메일을 입력해주세요."
             value={loginEmail}
             onChange={(e) => setLoginEmail(e.target.value)}
-          ></input>
+            type="email"
+          />
         </div>
         {/* password */}
         <div>
           password
           <input
-            placeholder="Input Password"
+            placeholder="비밀번호를 입력해주세요."
             value={loginPassword}
             onChange={(e) => setLoginPassword(e.target.value)}
             type="password"
-          ></input>
+          />
         </div>
         {/* submit */}
-        <button onClick={() => loginUser()}>submit</button>
+        <button onClick={() => login()}>submit</button>
       </div>
     )
   }
 
-  interface textInform {
+  interface TextInfo {
     id: number
     user_id: number
     text: string
   }
 
   const [text, setText] = React.useState('')
-  const [textList, setTextList] = React.useState<textInform[]>()
+  const [textList, setTextList] = React.useState<TextInfo[]>()
 
   const refetch = React.useCallback(async () => {
     const fetched = await fetch(`/chatting`)
@@ -188,13 +189,15 @@ export default function App() {
     refetch()
   }, [refetch])
 
-  const textBox = (text: textInform) => {
+  // review: 컴포넌트로 쪼개 주세요.
+  const TextBox = (text: TextInfo) => {
     return (
       <div className="textBox" key={text.id}>
         <div>{text.text}</div>
         <button
           className="button"
           onClick={() => {
+            // review: 서버에서 권한을 판단해야 합니다.
             if (userId === text.user_id) {
               deleteText(text.id)
             }
@@ -206,8 +209,10 @@ export default function App() {
     )
   }
 
+  // review: text, chatting 둘 중 하나로 통일해야 합니다.
+  // review: user_id는 쿠키로 서버에서 검증하는 것이고 여기에서 받으면 안 됩니다.
   const createText = async (user_id: number, text: string) => {
-    const fetched = await fetch(`/chatting/${user_id}`, {
+    await fetch(`/chatting/${user_id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -226,7 +231,8 @@ export default function App() {
     refetch()
   }
 
-  const chatting = () => {
+  // review: 컴포넌트로 쪼개 주세요.
+  const ChattingPage = () => {
     return (
       <div>
         <div>Chatting</div>
@@ -246,13 +252,11 @@ export default function App() {
           ></input>
         </div>
         <div className="chattingBox">
-          {textList && textList.map((text: textInform) => textBox(text))}
+          {textList && textList.map((text: TextInfo) => TextBox(text))}
         </div>
       </div>
     )
   }
-
-  //link로 변경하기
   return (
     <Router>
       <div>
@@ -270,9 +274,9 @@ export default function App() {
           </ul>
         </nav>
         <Routes>
-          <Route path="/" element={login()} />
-          <Route path="/chatting" element={chatting()} />
-          <Route path="/register" element={register()} />
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/chatting" element={<ChattingPage />} />
+          <Route path="/register" element={<RegistrationPage />} />
         </Routes>
       </div>
     </Router>

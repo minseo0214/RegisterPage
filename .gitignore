@@ -1,2 +1,4 @@
 node_modules
 build
+# review: .env를 .gitignore에 넣어서 버전 관리되지 않게 해야 합니다.
+# review: *.log도 .gitignore에 들어가야 합니다.

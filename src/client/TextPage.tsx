@@ -9,7 +9,7 @@ interface TextInfo {
 const TextBox = (text: TextInfo, refetch: () => Promise<void>) => {
   return (
     <div className="textBox" key={text.id}>
-      {/* text name으로 변경하기 */}
+      {/* text name으로 하려면 server에서 user_id 와 name을 가져와야할까요?*/}
       <div>{text.user_id}</div>
       <div>{text.text}</div>
       <button
@@ -24,7 +24,6 @@ const TextBox = (text: TextInfo, refetch: () => Promise<void>) => {
   )
 }
 
-// review: user_id는 쿠키로 서버에서 검증하는 것이고 여기에서 받으면 안 됩니다.
 const createText = async (text: string, refetch: () => Promise<void>) => {
   await fetch(`/text`, {
     method: 'POST',

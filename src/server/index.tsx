@@ -6,9 +6,11 @@ import Router from 'koa-router'
 import serve from 'koa-static'
 import bodyParser from 'koa-bodyparser'
 import { createPool, sql } from 'slonik'
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs' //bcrpyt로 하면 3개의 error가 납니다.
 import jwt, { SignOptions } from 'jsonwebtoken'
+import jwt_decode from 'jwt-decode'
 
+// env 사용이 안되는 이유를 모르겠습니다.
 // const SECRET_KEY = process.env.SECRET_KEY
 
 const SECRET_KEY = 'MySecretKey1$1$234'
@@ -73,18 +75,17 @@ router.post('/user', async (ctx) => {
 router.post('/login', async (ctx) => {
   const { email, password } = ctx.request.body
   const savedPasswordAndUserId = (
-    await pool.query(
-      sql`select user_id, password from users where email=${email}`
-    )
+    await pool.query(sql`select id, password from users where email=${email}`)
   ).rows[0]
 
   const check = await bcrypt.compare(
     password,
     String(savedPasswordAndUserId?.password)
   )
+
   if (check) {
     const accessToken = await generateToken(
-      { user_id: savedPasswordAndUserId?.user_id },
+      { id: savedPasswordAndUserId?.id },
       { subject: 'access_token', expiresIn: '1d' }
     )
     ctx.cookies.set('access_token', accessToken, {
@@ -97,31 +98,35 @@ router.post('/login', async (ctx) => {
   }
 })
 
-// // user Id를 전달하기 위해 만듬
-// router.get('/user/:loginEmail', async (ctx) => {
-//   const { loginEmail } = ctx.params
-//   const userId = await pool.query(
-//     sql`select id from users where email=${loginEmail}`
-//   )
-//   ctx.body = JSON.stringify(userId)
-// })
-
 router.get('/text', async (ctx) => {
   const data = await pool.query(sql`SELECT * FROM text ORDER BY date DESC`)
   ctx.response.body = JSON.stringify(data)
 })
 
-// review: 유저 아이디를 직접 받는 것은 잘못된 방식입니다. ctx의 cookie로부터 유저 정보를 알아내야 합니다.
 router.post('/text', async (ctx) => {
   const { text } = ctx.request.body
-  pool.query(sql`insert into text(text) values (${text})`)
+  const token = String(ctx.request.header.cookie)
+  const decoded = JSON.parse(JSON.stringify(jwt_decode(token)))
+  const userId = decoded?.id
+  pool.query(sql`insert into text(user_id,text) values (${userId},${text})`)
   ctx.status = 200
 })
 
 router.delete('/text/:id', async (ctx) => {
   const { id } = ctx.params
+
+  const token = String(ctx.request.header.cookie)
+  const decoded = JSON.parse(JSON.stringify(jwt_decode(token)))
+  const userId = decoded?.id
+
   if (id === undefined) return
-  pool.query(sql`delete from text where id=${id}`)
+  const textUserId = (
+    await pool.query(sql`select user_id from text where id=${id}`)
+  ).rows[0]?.user_id
+
+  if (textUserId === userId) {
+    pool.query(sql`delete from text where id=${id}`)
+  }
   ctx.status = 200
 })
 

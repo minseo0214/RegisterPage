@@ -1,12 +1,8 @@
 import React from 'react'
 
 // 로그인
-const [userId, setUserId] = React.useState<number>()
-const [loginEmail, setLoginEmail] = React.useState('')
-const [loginPassword, setLoginPassword] = React.useState('')
-
-const login = () => {
-  fetch(`/login`, {
+const login = async (loginEmail: string, loginPassword: string) => {
+  const res = await fetch(`/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -15,22 +11,16 @@ const login = () => {
       email: loginEmail,
       password: loginPassword,
     }),
-  }).then((res) => {
-    if (!res.ok) {
-      alert('아이디나 비밀번호가 틀렸습니다')
-    } else {
-      const setUser = async () => {
-        const res = await fetch(`/user/${loginEmail}`)
-        const user_Id = await res.json()
-        setUserId(user_Id.rows[0].id)
-      }
-      setUser()
-    }
   })
+  if (!res.ok) {
+    alert('아이디나 비밀번호가 틀렸습니다')
+  }
 }
 
-// review: 컴포넌트로 쪼개 주세요.
 export default function LoginPage() {
+  const [loginEmail, setLoginEmail] = React.useState('')
+  const [loginPassword, setLoginPassword] = React.useState('')
+
   return (
     <div>
       {/* email */}
@@ -54,7 +44,7 @@ export default function LoginPage() {
         />
       </div>
       {/* submit */}
-      <button onClick={() => login()}>submit</button>
+      <button onClick={() => login(loginEmail, loginPassword)}>submit</button>
     </div>
   )
 }

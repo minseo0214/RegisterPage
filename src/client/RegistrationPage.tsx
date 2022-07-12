@@ -64,7 +64,7 @@ export default function RegisterPage() {
       <div>
         username
         <input
-          placeholder="Eneter username"
+          placeholder="사용할 이름을 입력해주세요"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
@@ -73,7 +73,7 @@ export default function RegisterPage() {
       <div>
         Email
         <input
-          placeholder="Enter email"
+          placeholder="이메일을 입력해주세요"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         ></input>
@@ -83,7 +83,7 @@ export default function RegisterPage() {
         Password (최소 8자, 최소 하나의 문자 및 하나의 숫자의 비밀번호를
         사용해주세요)
         <input
-          placeholder="Enter password"
+          placeholder="설정할 비밀번호를 입력해주세요"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           type="password"
@@ -93,7 +93,7 @@ export default function RegisterPage() {
       <div>
         Confirm Password
         <input
-          placeholder="Enter password again"
+          placeholder="비밀번호를 다시 입력해주세요"
           value={checkPassword}
           onChange={(e) => setCheckPassword(e.target.value)}
           type="password"

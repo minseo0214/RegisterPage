@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom'
 import './styles.css'
 import RegistrationPage from './RegistrationPage'
 import LoginPage from './LoginPage'
-import ChattingPage from './ChattingPage'
+import TextPage from './TextPage'
 
 export default function App() {
   return (
@@ -15,17 +15,17 @@ export default function App() {
               <Link to="/">Login</Link>
             </li>
             <li>
-              <Link to="/register">Register</Link>
+              <Link to="/registration">Register</Link>
             </li>
             <li>
-              <Link to="/chatting">Chatting</Link>
+              <Link to="/text">Chatting</Link>
             </li>
           </ul>
         </nav>
         <Routes>
           <Route path="/" element={<LoginPage />} />
-          <Route path="/chatting" element={<ChattingPage />} />
-          <Route path="/register" element={<RegistrationPage />} />
+          <Route path="/text" element={<TextPage />} />
+          <Route path="/registration" element={<RegistrationPage />} />
         </Routes>
       </div>
     </Router>

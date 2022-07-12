@@ -50,9 +50,7 @@ router.get('/', async (ctx) => {
 
 router.post('/user', async (ctx) => {
   const { name, email, password } = ctx.request.body
-  console.log(password)
   const encrypt = await bcrypt.hash(password, 10)
-  console.log('in', encrypt)
   pool.query(
     sql`INSERT INTO users(name, email, password) VALUES (${name}, ${email}, ${encrypt})`
   )
@@ -67,6 +65,7 @@ router.post('/login', async (ctx) => {
   const data = (await dbPassword).rows
   const check = await bcrypt.compare(password, data[0].password)
   if (check) {
+    // accessToken을 사용했더니 안보임..?
     const accessToken = await generateToken(
       { user_id: data[0].user_id },
       { subject: 'access_token', expiresIn: '1h' }
@@ -81,7 +80,8 @@ router.post('/login', async (ctx) => {
   }
 })
 
-router.get('/:loginEmail', async (ctx) => {
+// user Id를 전달하기 위해 만듬
+router.get('/user/:loginEmail', async (ctx) => {
   const { loginEmail } = ctx.params
   const userId = await pool.query(
     sql`select id from users where email=${loginEmail}`
@@ -89,19 +89,19 @@ router.get('/:loginEmail', async (ctx) => {
   ctx.body = JSON.stringify(userId)
 })
 
-router.get('/text', async (ctx) => {
+router.get('/chatting', async (ctx) => {
   const data = await pool.query(sql`SELECT * FROM text ORDER BY date DESC`)
-  ctx.body = JSON.stringify(data)
+  ctx.response.body = JSON.stringify(data)
 })
 
-router.post('/text/:user_id', async (ctx) => {
+router.post('/chatting/:user_id', async (ctx) => {
   const { user_id } = ctx.params
   const { text } = ctx.request.body
   pool.query(sql`insert into text(user_id,text) values (${user_id},${text})`)
   ctx.status = 200
 })
 
-router.delete('/text/:id', async (ctx) => {
+router.delete('/chatting/:id', async (ctx) => {
   const { id } = ctx.params
   pool.query(sql`delete from text where id=${id}`)
   ctx.status = 200

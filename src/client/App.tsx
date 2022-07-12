@@ -1,5 +1,5 @@
 import React from 'react'
-
+import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom'
 import './styles.css'
 
 //CRUD (Create Read Update Delete)
@@ -130,6 +130,13 @@ export default function App() {
     }).then((res) => {
       if (!res.ok) {
         alert('아이디나 비밀번호가 틀렸습니다')
+      } else {
+        const setUser = async () => {
+          const res = await fetch(`/user/${loginEmail}`)
+          const user_Id = await res.json()
+          setUserId(user_Id.rows[0].id)
+        }
+        setUser()
       }
     })
   }
@@ -172,28 +179,35 @@ export default function App() {
   const [textList, setTextList] = React.useState<textInform[]>()
 
   const refetch = React.useCallback(async () => {
-    const fetched = await fetch(`/text`)
+    const fetched = await fetch(`/chatting`)
     const data = await fetched.json()
     setTextList(data.rows)
   }, [])
 
+  React.useEffect(() => {
+    refetch()
+  }, [refetch])
+
   const textBox = (text: textInform) => {
     return (
-      <div key={text.id}>
+      <div className="textBox" key={text.id}>
         <div>{text.text}</div>
         <button
+          className="button"
           onClick={() => {
             if (userId === text.user_id) {
               deleteText(text.id)
             }
           }}
-        ></button>
+        >
+          delete
+        </button>
       </div>
     )
   }
 
   const createText = async (user_id: number, text: string) => {
-    const fetched = await fetch(`/text/${user_id}`, {
+    const fetched = await fetch(`/chatting/${user_id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -206,15 +220,11 @@ export default function App() {
   }
 
   const deleteText = async (id: number) => {
-    await fetch(`/text/${id}`, {
+    await fetch(`/chatting/${id}`, {
       method: 'DELETE',
     })
     refetch()
   }
-
-  React.useEffect(() => {
-    refetch()
-  }, [refetch])
 
   const chatting = () => {
     return (
@@ -235,16 +245,36 @@ export default function App() {
             }}
           ></input>
         </div>
-        {textList && textList.map((text: textInform) => textBox(text))}
+        <div className="chattingBox">
+          {textList && textList.map((text: textInform) => textBox(text))}
+        </div>
       </div>
     )
   }
 
+  //link로 변경하기
   return (
-    <div>
-      <div>{register()}</div>
-      <div>{login()}</div>
-      <div>{chatting()}</div>
-    </div>
+    <Router>
+      <div>
+        <nav>
+          <ul>
+            <li>
+              <Link to="/">Login</Link>
+            </li>
+            <li>
+              <Link to="/register">Register</Link>
+            </li>
+            <li>
+              <Link to="/chatting">Chatting</Link>
+            </li>
+          </ul>
+        </nav>
+        <Routes>
+          <Route path="/" element={login()} />
+          <Route path="/chatting" element={chatting()} />
+          <Route path="/register" element={register()} />
+        </Routes>
+      </div>
+    </Router>
   )
 }

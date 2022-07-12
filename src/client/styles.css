@@ -1,3 +1,18 @@
 .container {
   background-color: gray;
+  flex: 1;
+}
+
+.chattingBox {
+  flex: 1;
+  flex-direction: column;
+}
+
+.textBox {
+  flex: 1;
+  flex-direction: row;
+}
+
+.button {
+  background-color: blanchedalmond;
 }

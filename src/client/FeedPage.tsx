@@ -1,4 +1,5 @@
 import React from 'react'
+import { useLocation } from 'react-router-dom'
 
 interface FeedInfo {
   id: number
@@ -6,23 +7,27 @@ interface FeedInfo {
   text: string
 }
 
+//button disabled
 const FeedBox = ({
   feed,
+  userName,
   refetch,
 }: {
   feed: FeedInfo
+  userName: string
   refetch: () => Promise<void>
 }) => {
   return (
     <div className="feedBox" key={feed.id}>
-      <div>{feed.name}</div>
-      <div>{feed.text}</div>
+      <div className="feedUser">{feed.name}</div>
+      <div className="feedText">{feed.text}</div>
       <button
-        className="button"
+        className="feedButton"
         onClick={async () => {
           await deleteFeed(feed.id)
           refetch()
         }}
+        style={{ visibility: userName === feed.name ? 'visible' : 'hidden' }}
       >
         delete
       </button>
@@ -31,7 +36,7 @@ const FeedBox = ({
 }
 
 const createFeed = async (text: string) => {
-  await fetch(`/feed`, {
+  await fetch(`/api/feed`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,17 +48,25 @@ const createFeed = async (text: string) => {
 }
 
 const deleteFeed = async (id: number) => {
-  await fetch(`/feed/${id}`, {
+  await fetch(`/api/feed/${id}`, {
     method: 'DELETE',
   })
+}
+
+interface UserName {
+  userName: string
 }
 
 export default function FeedPage() {
   const [feed, setFeed] = React.useState('')
   const [feedList, setFeedList] = React.useState<FeedInfo[]>()
+  const { state } = useLocation()
+
+  const data = state as UserName
+  const userName = data.userName
 
   const refetch = React.useCallback(async () => {
-    const fetched = await fetch(`/feed`)
+    const fetched = await fetch(`/api/feed`)
     const data = await fetched.json()
     setFeedList(data)
   }, [])
@@ -64,9 +77,11 @@ export default function FeedPage() {
 
   return (
     <div>
-      <div>TextList</div>
-      <div>
+      <div className="feedTitle">Chatting Feed</div>
+      <div className="inputBox">
+        <div className="inputName"> {userName}</div>
         <input
+          className="inputText"
           placeholder="Input Text"
           value={feed}
           onChange={(e) => setFeed(e.target.value)}
@@ -83,10 +98,15 @@ export default function FeedPage() {
           }}
         />
       </div>
-      <div className="TextListBox">
+      <div className="feedBoxWrap">
         {feedList &&
           feedList.map((feed: FeedInfo) => (
-            <FeedBox key={feed.id} feed={feed} refetch={refetch} />
+            <FeedBox
+              key={feed.id}
+              feed={feed}
+              userName={userName}
+              refetch={refetch}
+            />
           ))}
       </div>
     </div>

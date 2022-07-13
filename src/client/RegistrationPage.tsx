@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 // 정상적인 이메일 포맷인지 확인
 const isEmail = (email: string) => {
@@ -24,16 +25,17 @@ const createUser = async (
   checkPassword: string
 ) => {
   if (!(isEmail(email) && isSamePassword(password, checkPassword))) {
-    throw new Error('입력한 정보를 다시 확인해주세요')
+    return { check: false, text: '이메일이나 비밀번호이 다릅니다.' }
   }
 
   if (!isGoodPassword(password)) {
-    throw new Error(
-      '최소 8자, 최소 하나의 문자 및 하나의 숫자의 비밀번호를 사용해주세요'
-    )
+    return {
+      check: false,
+      text: '최소 8자, 최소 하나의 문자 및 하나의 숫자를 입력하세요',
+    }
   }
 
-  return await fetch(`/user`, {
+  await fetch(`/api/user`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -44,6 +46,8 @@ const createUser = async (
       password,
     }),
   })
+
+  return { check: true, text: '가입되었습니다!' }
 }
 
 export default function RegisterPage() {
@@ -52,62 +56,89 @@ export default function RegisterPage() {
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [checkPassword, setCheckPassword] = React.useState('')
+  const navigate = useNavigate()
 
   return (
-    <div className="container">
+    <div
+      className="wrap"
+      style={{
+        fontSize: '40px',
+        width: '600px',
+        height: '500px',
+        paddingTop: '40px',
+      }}
+    >
       Welcome
-      {/* username */}
-      <div>
-        username
-        <input
-          placeholder="사용할 이름을 입력해주세요"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
-      {/* email */}
-      <div>
-        Email
-        <input
-          placeholder="이메일을 입력해주세요"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-      {/* password */}
-      <div>
-        Password (최소 8자, 최소 하나의 문자 및 하나의 숫자의 비밀번호를
-        사용해주세요)
-        <input
-          placeholder="설정할 비밀번호를 입력해주세요"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type="password"
-        />
-      </div>
-      {/* confirm password */}
-      <div>
-        Confirm Password
-        <input
-          placeholder="비밀번호를 다시 입력해주세요"
-          value={checkPassword}
-          onChange={(e) => setCheckPassword(e.target.value)}
-          type="password"
-        />
-      </div>
-      <button
-        onClick={() => {
-          try {
-            createUser(name, email, password, checkPassword)
-          } catch (e) {
-            if (e instanceof Error) {
-              alert(e.message)
+      <div className="feedBoxWrap">
+        {/* username */}
+        <form
+          id="register"
+          onSubmit={async (e) => {
+            e.preventDefault()
+            const { check, text } = await createUser(
+              name,
+              email,
+              password,
+              checkPassword
+            )
+            if (check) {
+              alert(text)
+              navigate('../')
+            } else {
+              alert(text)
             }
-          }
-        }}
-      >
-        submit
-      </button>
+          }}
+        >
+          <input
+            type="string"
+            className="loginInput "
+            placeholder="사용할 이름을 입력해주세요"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          {/* email */}
+          <input
+            type="email"
+            className="loginInput "
+            placeholder="이메일을 입력해주세요"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            className="loginInput "
+            placeholder="(최소 8자, 최소 하나의 문자 및 하나의 숫자)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            required
+          />
+          {/* confirm password */}
+
+          <input
+            className="loginInput "
+            placeholder="비밀번호를 다시 입력해주세요"
+            value={checkPassword}
+            onChange={(e) => setCheckPassword(e.target.value)}
+            type="password"
+            required
+          />
+          <button
+            className="loginInput"
+            type="submit"
+            style={{
+              backgroundColor: 'rgb(241,155,61)',
+              color: 'white',
+              padding: '0px',
+              marginBottom: '0px',
+              cursor: 'pointer',
+            }}
+          >
+            가입하기
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

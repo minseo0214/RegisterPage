@@ -1,13 +1,10 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import './styles.css'
 
 // 로그인
-const login = async (
-  loginEmail: string,
-  loginPassword: string,
-  navigate: (path: string) => void
-) => {
-  const res = await fetch(`/login`, {
+const login = async (loginEmail: string, loginPassword: string) => {
+  const res = await fetch(`/api/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -18,43 +15,79 @@ const login = async (
     }),
   })
   if (!res.ok) {
-    alert('아이디나 비밀번호가 틀렸습니다')
-  } else {
-    navigate('/text')
+    return false
   }
+  return res.ok
 }
 
 export default function LoginPage() {
   const [loginEmail, setLoginEmail] = React.useState('')
   const [loginPassword, setLoginPassword] = React.useState('')
+  const [userCheck, setUserCheck] = React.useState(true)
   const navigate = useNavigate()
 
   return (
-    <div>
+    <div className="wrap">
       {/* email */}
-      <div>
-        email
+      <form
+        id="login"
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const userCheck = await login(loginEmail, loginPassword)
+          setUserCheck(userCheck)
+          const res = await fetch(`/api/login/${loginEmail}`)
+          const userName = await res.json()
+          if (userCheck) {
+            navigate('/feed', { state: { userName } })
+          }
+        }}
+      >
         <input
-          placeholder="이메일을 입력해주세요."
+          name="email"
+          className="loginInput"
+          placeholder="Email"
           value={loginEmail}
           onChange={(e) => setLoginEmail(e.target.value)}
           type="email"
         />
-      </div>
-      {/* password */}
-      <div>
-        password
+        {/* password */}
         <input
-          placeholder="비밀번호를 입력해주세요."
+          name="password"
+          className="loginInput"
+          placeholder="Password"
           value={loginPassword}
           onChange={(e) => setLoginPassword(e.target.value)}
           type="password"
         />
-      </div>
+        <button
+          className="loginInput"
+          style={{
+            backgroundColor: 'rgb(241,155,61)',
+            color: 'white',
+            padding: '0px',
+            marginBottom: '0px',
+            cursor: 'pointer',
+          }}
+          type="submit"
+        >
+          LOGIN
+        </button>
+      </form>
       {/* submit */}
-      <button onClick={() => login(loginEmail, loginPassword, navigate)}>
-        로그인
-      </button>
+      <div
+        className="loginInput"
+        style={{
+          backgroundColor: 'white',
+          color: 'black',
+          padding: '0px',
+          marginLeft: '100px',
+        }}
+      >
+        <p>
+          You don't have account? <a href="/registration">Register</a>
+        </p>
+        <p>{userCheck ? '' : '아이디/비밀번호를 다시 확인해주세요'}</p>
+      </div>
     </div>
   )
 }

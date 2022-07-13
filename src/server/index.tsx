@@ -42,9 +42,21 @@ const generateToken = (payload: any, options: SignOptions): Promise<string> => {
   })
 }
 
+const decodeToken = (token: string | undefined) => {
+  if (typeof token !== 'string') {
+    return false
+  }
+  const base64Payload = token.split('.')[1]
+  if (typeof base64Payload !== 'string') {
+    return false
+  }
+  const payload = Buffer.from(base64Payload, 'base64')
+  const result = JSON.parse(payload.toString())
+  return result.id
+}
+
 const router = new Router()
 
-//const url = process.env.DB_URL
 if (!url) {
   throw new Error('DB URL이 잘못되었습니다.')
 }
@@ -54,12 +66,13 @@ pool.connect(async (connection) => {
   await connection.query(sql`SELECT * FROM users`)
 })
 
-router.get('/', async (ctx) => {
+const regex = /^(\/)(\w*)(\/?)$/
+router.get(regex, async (ctx) => {
   const html = await fs.promises.readFile('./src/client/index.html', 'utf-8')
   ctx.body = html
 })
 
-router.post('/login', async (ctx) => {
+router.post('/api/login', async (ctx) => {
   const { email, password } = ctx.request.body
   const savedPasswordAndUserId = (
     await pool.query(sql`select id, password from users where email=${email}`)
@@ -86,7 +99,19 @@ router.post('/login', async (ctx) => {
   }
 })
 
-router.post('/user', async (ctx) => {
+router.get('/api/login/:loginEmail', async (ctx) => {
+  const { loginEmail } = ctx.params
+
+  if (typeof loginEmail !== 'string') return
+  const res = await pool.query(
+    sql`select name from users where email=${loginEmail}`
+  )
+  const userName = res.rows[0]?.name
+  ctx.response.body = JSON.stringify(userName)
+  ctx.status = 200
+})
+
+router.post('/api/user', async (ctx) => {
   const { name, email, password } = ctx.request.body
   const encrypt = await bcrypt.hash(password, 10)
   await pool.query(
@@ -95,7 +120,7 @@ router.post('/user', async (ctx) => {
   ctx.status = 200
 })
 
-router.get('/feed', async (ctx) => {
+router.get('/api/feed', async (ctx) => {
   const data = await pool.query(
     sql`SELECT feed.id, users.name, feed.text FROM feed INNER JOIN users ON feed.user_id = users.id ORDER BY feed.date DESC`
   )
@@ -103,48 +128,29 @@ router.get('/feed', async (ctx) => {
 })
 
 // feed DB에 넣기
-router.post('/feed', async (ctx) => {
+router.post('/api/feed', async (ctx) => {
   const { text } = ctx.request.body
-  // 미들웨어에 넣기, 같이 반복되는 것은 component로
+  // 미들웨어에 넣기
   const token = ctx.request.header.cookie
-  if (typeof token !== 'string') {
-    return (ctx.status = 400)
-  }
-  const base64Payload = token.split('.')[1]
-  if (typeof base64Payload !== 'string') {
-    return (ctx.status = 400)
-  }
-  const payload = Buffer.from(base64Payload, 'base64')
-  const result = JSON.parse(payload.toString())
-  const userId = result.id
-
+  const userId = decodeToken(token)
+  if (userId === false) return (ctx.status = 400)
   await pool.query(
     sql`insert into feed(user_id,text) values (${userId},${text})`
   )
   ctx.status = 200
 })
 
-router.delete('/feed/:id', async (ctx) => {
+router.delete('/api/feed/:id', async (ctx) => {
   const { id } = ctx.params
   const token = ctx.request.header.cookie
-  if (typeof token !== 'string') {
-    return (ctx.status = 400)
-  }
-  const base64Payload = token.split('.')[1]
-  if (typeof base64Payload !== 'string') {
-    return (ctx.status = 400)
-  }
-  const payload = Buffer.from(base64Payload, 'base64')
-  const result = JSON.parse(payload.toString())
-  const userId = result.id
-
+  const userId = decodeToken(token)
+  if (userId === false) return (ctx.status = 400)
   if (id === undefined) return
   const feedUserId = (
     await pool.query(sql`select user_id from feed where id=${id}`)
   ).rows[0]?.user_id
 
   if (feedUserId === userId) {
-    // review: await 하지 않으면 에러 상황에도 200이 내려갑니다.
     await pool.query(sql`delete from feed where id=${id}`)
   }
   ctx.status = 200

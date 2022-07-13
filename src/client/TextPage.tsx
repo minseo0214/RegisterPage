@@ -1,26 +1,26 @@
 import React from 'react'
 
-interface TextInfo {
+interface FeedInfo {
   id: number
   name: string
   text: string
 }
 
-const TextBox = ({
-  text,
+const FeedBox = ({
+  feed,
   refetch,
 }: {
-  text: TextInfo
+  feed: FeedInfo
   refetch: () => Promise<void>
 }) => {
   return (
-    <div className="textBox" key={text.id}>
-      <div>{text.name}</div>
-      <div>{text.text}</div>
+    <div className="feedBox" key={feed.id}>
+      <div>{feed.name}</div>
+      <div>{feed.text}</div>
       <button
         className="button"
         onClick={async () => {
-          await deleteText(text.id)
+          await deleteFeed(feed.id)
           refetch()
         }}
       >
@@ -30,32 +30,32 @@ const TextBox = ({
   )
 }
 
-const createText = async (text: string) => {
-  await fetch(`/text`, {
+const createFeed = async (text: string) => {
+  await fetch(`/feed`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      text: text,
+      text,
     }),
   })
 }
 
-const deleteText = async (id: number) => {
-  await fetch(`/text/${id}`, {
+const deleteFeed = async (id: number) => {
+  await fetch(`/feed/${id}`, {
     method: 'DELETE',
   })
 }
 
-export default function TextPage() {
-  const [text, setText] = React.useState('')
-  const [textList, setTextList] = React.useState<TextInfo[]>()
+export default function FeedPage() {
+  const [feed, setFeed] = React.useState('')
+  const [feedList, setFeedList] = React.useState<FeedInfo[]>()
 
   const refetch = React.useCallback(async () => {
-    const fetched = await fetch(`/text`)
+    const fetched = await fetch(`/feed`)
     const data = await fetched.json()
-    setTextList(data)
+    setFeedList(data)
   }, [])
 
   React.useEffect(() => {
@@ -68,25 +68,25 @@ export default function TextPage() {
       <div>
         <input
           placeholder="Input Text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
+          value={feed}
+          onChange={(e) => setFeed(e.target.value)}
           onKeyPress={async (e) => {
             // review: 공백 검사가 실제로 잘 작동하고 있지 않습니다.
             if (e.key === 'Enter') {
-              setText(text.trim())
-              if (text !== '') {
-                await createText(text)
+              const trimFeed = feed.trim()
+              if (trimFeed !== '') {
+                await createFeed(trimFeed)
                 refetch()
-                setText('')
+                setFeed('')
               }
             }
           }}
         />
       </div>
       <div className="TextListBox">
-        {textList &&
-          textList.map((text: TextInfo) => (
-            <TextBox key={text.id} text={text} refetch={refetch} />
+        {feedList &&
+          feedList.map((feed: FeedInfo) => (
+            <FeedBox key={feed.id} feed={feed} refetch={refetch} />
           ))}
       </div>
     </div>

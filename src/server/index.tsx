@@ -14,6 +14,9 @@ import jwt, { SignOptions } from 'jsonwebtoken'
 const SECRET_KEY = process.env.SECRET_KEY
 const url = process.env.DB_URL
 
+const app = new Koa()
+app.use(bodyParser())
+
 if (!SECRET_KEY) {
   throw new Error('Secret key for JWT is missing.')
 }
@@ -39,9 +42,6 @@ const generateToken = (payload: any, options: SignOptions): Promise<string> => {
   })
 }
 
-const app = new Koa()
-app.use(bodyParser())
-
 const router = new Router()
 
 //const url = process.env.DB_URL
@@ -59,22 +59,12 @@ router.get('/', async (ctx) => {
   ctx.body = html
 })
 
-router.post('/user', async (ctx) => {
-  const { name, email, password } = ctx.request.body
-  const encrypt = await bcrypt.hash(password, 10)
-  await pool.query(
-    sql`INSERT INTO users(name, email, password) VALUES (${name}, ${email}, ${encrypt})`
-  )
-  ctx.status = 200
-})
-
 router.post('/login', async (ctx) => {
   const { email, password } = ctx.request.body
   const savedPasswordAndUserId = (
     await pool.query(sql`select id, password from users where email=${email}`)
   ).rows[0]
 
-  // review: type guard
   if (typeof savedPasswordAndUserId?.password !== 'string') {
     return
   }
@@ -96,16 +86,26 @@ router.post('/login', async (ctx) => {
   }
 })
 
-router.get('/text', async (ctx) => {
+router.post('/user', async (ctx) => {
+  const { name, email, password } = ctx.request.body
+  const encrypt = await bcrypt.hash(password, 10)
+  await pool.query(
+    sql`INSERT INTO users(name, email, password) VALUES (${name}, ${email}, ${encrypt})`
+  )
+  ctx.status = 200
+})
+
+router.get('/feed', async (ctx) => {
   const data = await pool.query(
-    sql`SELECT text.id, users.name, text.text FROM text INNER JOIN users ON text.user_id = users.id ORDER BY text.date DESC`
+    sql`SELECT feed.id, users.name, feed.text FROM feed INNER JOIN users ON feed.user_id = users.id ORDER BY feed.date DESC`
   )
   ctx.response.body = JSON.stringify(data.rows)
 })
 
-router.post('/text', async (ctx) => {
+// feed DB에 넣기
+router.post('/feed', async (ctx) => {
   const { text } = ctx.request.body
-  // review: type guard를 사용하도록 바꾸셔야 합니다.
+  // 미들웨어에 넣기, 같이 반복되는 것은 component로
   const token = ctx.request.header.cookie
   if (typeof token !== 'string') {
     return (ctx.status = 400)
@@ -117,14 +117,14 @@ router.post('/text', async (ctx) => {
   const payload = Buffer.from(base64Payload, 'base64')
   const result = JSON.parse(payload.toString())
   const userId = result.id
-  // review: await 하지 않으면 에러 상황에도 200이 내려갑니다.
+
   await pool.query(
-    sql`insert into text(user_id,text) values (${userId},${text})`
+    sql`insert into feed(user_id,text) values (${userId},${text})`
   )
   ctx.status = 200
 })
 
-router.delete('/text/:id', async (ctx) => {
+router.delete('/feed/:id', async (ctx) => {
   const { id } = ctx.params
   const token = ctx.request.header.cookie
   if (typeof token !== 'string') {
@@ -139,13 +139,13 @@ router.delete('/text/:id', async (ctx) => {
   const userId = result.id
 
   if (id === undefined) return
-  const textUserId = (
-    await pool.query(sql`select user_id from text where id=${id}`)
+  const feedUserId = (
+    await pool.query(sql`select user_id from feed where id=${id}`)
   ).rows[0]?.user_id
 
-  if (textUserId === userId) {
+  if (feedUserId === userId) {
     // review: await 하지 않으면 에러 상황에도 200이 내려갑니다.
-    await pool.query(sql`delete from text where id=${id}`)
+    await pool.query(sql`delete from feed where id=${id}`)
   }
   ctx.status = 200
 })

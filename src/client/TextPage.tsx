@@ -2,20 +2,26 @@ import React from 'react'
 
 interface TextInfo {
   id: number
-  user_id: number
+  name: string
   text: string
 }
 
-const TextBox = (text: TextInfo, refetch: () => Promise<void>) => {
+const TextBox = ({
+  text,
+  refetch,
+}: {
+  text: TextInfo
+  refetch: () => Promise<void>
+}) => {
   return (
     <div className="textBox" key={text.id}>
-      {/* text name으로 하려면 server에서 user_id 와 name을 가져와야할까요?*/}
-      <div>{text.user_id}</div>
+      <div>{text.name}</div>
       <div>{text.text}</div>
       <button
         className="button"
-        onClick={() => {
-          deleteText(text.id, refetch)
+        onClick={async () => {
+          await deleteText(text.id)
+          refetch()
         }}
       >
         delete
@@ -24,7 +30,7 @@ const TextBox = (text: TextInfo, refetch: () => Promise<void>) => {
   )
 }
 
-const createText = async (text: string, refetch: () => Promise<void>) => {
+const createText = async (text: string) => {
   await fetch(`/text`, {
     method: 'POST',
     headers: {
@@ -34,14 +40,12 @@ const createText = async (text: string, refetch: () => Promise<void>) => {
       text: text,
     }),
   })
-  refetch()
 }
 
-const deleteText = async (id: number, refetch: () => Promise<void>) => {
+const deleteText = async (id: number) => {
   await fetch(`/text/${id}`, {
     method: 'DELETE',
   })
-  refetch()
 }
 
 export default function TextPage() {
@@ -51,7 +55,7 @@ export default function TextPage() {
   const refetch = React.useCallback(async () => {
     const fetched = await fetch(`/text`)
     const data = await fetched.json()
-    setTextList(data.rows)
+    setTextList(data)
   }, [])
 
   React.useEffect(() => {
@@ -66,19 +70,24 @@ export default function TextPage() {
           placeholder="Input Text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key == 'Enter') {
+          onKeyPress={async (e) => {
+            // review: 공백 검사가 실제로 잘 작동하고 있지 않습니다.
+            if (e.key === 'Enter') {
               setText(text.trim())
               if (text !== '') {
-                createText(text, refetch)
+                await createText(text)
+                refetch()
                 setText('')
               }
             }
           }}
-        ></input>
+        />
       </div>
       <div className="TextListBox">
-        {textList && textList.map((text: TextInfo) => TextBox(text, refetch))}
+        {textList &&
+          textList.map((text: TextInfo) => (
+            <TextBox key={text.id} text={text} refetch={refetch} />
+          ))}
       </div>
     </div>
   )

@@ -24,16 +24,16 @@ const createUser = async (
   checkPassword: string
 ) => {
   if (!(isEmail(email) && isSamePassword(password, checkPassword))) {
-    alert('입력한 정보를 다시 확인해주세요')
-    return
+    throw new Error('입력한 정보를 다시 확인해주세요')
   }
 
   if (!isGoodPassword(password)) {
-    alert('최소 8자, 최소 하나의 문자 및 하나의 숫자의 비밀번호를 사용해주세요')
-    return
+    throw new Error(
+      '최소 8자, 최소 하나의 문자 및 하나의 숫자의 비밀번호를 사용해주세요'
+    )
   }
 
-  await fetch(`/user`, {
+  return await fetch(`/user`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,10 +43,6 @@ const createUser = async (
       email,
       password,
     }),
-  }).then((res) => {
-    if (res.ok) {
-      alert('생성되었습니다.')
-    }
   })
 }
 
@@ -76,7 +72,7 @@ export default function RegisterPage() {
           placeholder="이메일을 입력해주세요"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-        ></input>
+        />
       </div>
       {/* password */}
       <div>
@@ -99,7 +95,17 @@ export default function RegisterPage() {
           type="password"
         />
       </div>
-      <button onClick={() => createUser(name, email, password, checkPassword)}>
+      <button
+        onClick={() => {
+          try {
+            createUser(name, email, password, checkPassword)
+          } catch (e) {
+            if (e instanceof Error) {
+              alert(e.message)
+            }
+          }
+        }}
+      >
         submit
       </button>
     </div>

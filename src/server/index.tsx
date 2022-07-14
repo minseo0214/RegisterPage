@@ -56,6 +56,19 @@ const decodeToken = (token: string | undefined) => {
   return { check: true, userId: result.id }
 }
 
+const getCookieValue = (cookies: string) => {
+  const cookieKey = 'access_token='
+  const cookieArr = cookies.split(';')
+
+  for (let i = 0; i < cookieArr.length; i++) {
+    const cookieIndex = cookieArr[i]?.indexOf(cookieKey)
+    if (cookieIndex != -1) {
+      return cookieArr[i]?.replace('cookieKey', '')
+    }
+  }
+  return null
+}
+
 const app = new Koa()
 app.use(bodyParser())
 const router = new Router()
@@ -108,17 +121,21 @@ router.get('/api/login/:loginEmail', async (ctx) => {
     await pool.query(sql`select name from users where email=${loginEmail}`)
   ).rows[0]?.name
   ctx.response.body = JSON.stringify(savedUserName)
-  console.log(ctx.response.body)
   ctx.status = 200
 })
 
 router.post('/api/user', async (ctx) => {
   const { name, email, password } = ctx.request.body
   const encrypt = await bcrypt.hash(password, 10)
-  await pool.query(
-    sql`INSERT INTO users(name, email, password) VALUES (${name}, ${email}, ${encrypt})`
-  )
-  ctx.status = 200
+  try {
+    await pool.query(
+      sql`INSERT INTO users(name, email, password) VALUES (${name}, ${email}, ${encrypt})`
+    )
+  } catch (e) {
+    return (ctx.status = 400)
+  }
+
+  return (ctx.status = 200)
 })
 
 router.get('/api/feed', async (ctx) => {
@@ -133,9 +150,14 @@ router.get('/api/feed', async (ctx) => {
 
 router.post('/api/feed', async (ctx) => {
   const { text } = ctx.request.body
-  const token = ctx.request.header.cookie
+  const cookies = ctx.request.header.cookie
+  if (typeof cookies !== 'string') return (ctx.status = 400)
+  const token = getCookieValue(cookies)
+
+  if (typeof token !== 'string') return (ctx.status = 400)
 
   const { check, userId } = decodeToken(token)
+
   if (check === false) return (ctx.status = 400)
   await pool.query(
     sql`insert into feed(user_id,text) values (${userId},${text})`

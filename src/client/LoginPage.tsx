@@ -35,7 +35,9 @@ export default function LoginPage() {
           const userCheck = await login(loginEmail, loginPassword)
           setUserCheck(userCheck)
 
-          const userName = (await fetch(`/api/login/${loginEmail}`)).json()
+          const userName = await (
+            await fetch(`/api/login/${loginEmail}`)
+          ).json()
           if (userCheck) {
             navigate('/feed', { state: { userName } })
           }

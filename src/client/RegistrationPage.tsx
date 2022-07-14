@@ -33,7 +33,7 @@ const createUser = async (
     }
   }
 
-  await fetch(`/api/user`, {
+  const res = await fetch(`/api/user`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -44,6 +44,10 @@ const createUser = async (
       password,
     }),
   })
+
+  if (res.status == 400) {
+    return { check: false, text: '이미 가입된 이메일 입니다.' }
+  }
 
   return { check: true, text: '가입되었습니다!' }
 }

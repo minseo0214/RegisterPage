@@ -7,7 +7,6 @@ interface FeedInfo {
   text: string
 }
 
-//button disabled
 const FeedBox = ({
   feed,
   userName,
@@ -66,9 +65,8 @@ export default function FeedPage() {
   const userName = data.userName
 
   const refetch = React.useCallback(async () => {
-    const fetched = await fetch(`/api/feed`)
-    const data = await fetched.json()
-    setFeedList(data)
+    const feedListData = await (await fetch(`/api/feed`)).json()
+    setFeedList(feedListData)
   }, [])
 
   React.useEffect(() => {
@@ -88,9 +86,9 @@ export default function FeedPage() {
           onKeyPress={async (e) => {
             // review: 공백 검사가 실제로 잘 작동하고 있지 않습니다.
             if (e.key === 'Enter') {
-              const trimFeed = feed.trim()
-              if (trimFeed !== '') {
-                await createFeed(trimFeed)
+              const trimedFeed = feed.trim()
+              if (trimedFeed !== '') {
+                await createFeed(trimedFeed)
                 refetch()
                 setFeed('')
               }

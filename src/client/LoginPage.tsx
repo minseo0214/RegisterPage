@@ -2,7 +2,6 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import './styles.css'
 
-// 로그인
 const login = async (loginEmail: string, loginPassword: string) => {
   const res = await fetch(`/api/login`, {
     method: 'POST',
@@ -35,13 +34,14 @@ export default function LoginPage() {
           e.preventDefault()
           const userCheck = await login(loginEmail, loginPassword)
           setUserCheck(userCheck)
-          const res = await fetch(`/api/login/${loginEmail}`)
-          const userName = await res.json()
+
+          const userName = (await fetch(`/api/login/${loginEmail}`)).json()
           if (userCheck) {
             navigate('/feed', { state: { userName } })
           }
         }}
       >
+        {/* email */}
         <input
           name="email"
           className="loginInput"
@@ -49,6 +49,7 @@ export default function LoginPage() {
           value={loginEmail}
           onChange={(e) => setLoginEmail(e.target.value)}
           type="email"
+          required
         />
         {/* password */}
         <input
@@ -58,7 +59,9 @@ export default function LoginPage() {
           value={loginPassword}
           onChange={(e) => setLoginPassword(e.target.value)}
           type="password"
+          required
         />
+        {/* submit */}
         <button
           className="loginInput"
           style={{
@@ -73,7 +76,6 @@ export default function LoginPage() {
           LOGIN
         </button>
       </form>
-      {/* submit */}
       <div
         className="loginInput"
         style={{

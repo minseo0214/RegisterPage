@@ -1,11 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-// 정상적인 이메일 포맷인지 확인
 const isEmail = (email: string) => {
   const emailRegex =
     /^(([^<>()\[\].,;:\s@"]+(\.[^<>()\[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i
-
   return emailRegex.test(email)
 }
 
@@ -50,8 +48,8 @@ const createUser = async (
   return { check: true, text: '가입되었습니다!' }
 }
 
+// 회원 가입 페이지
 export default function RegisterPage() {
-  // 회원 가입 페이지
   const [name, setName] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
@@ -106,6 +104,7 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+          {/* password */}
           <input
             className="loginInput "
             placeholder="(최소 8자, 최소 하나의 문자 및 하나의 숫자)"
@@ -115,7 +114,6 @@ export default function RegisterPage() {
             required
           />
           {/* confirm password */}
-
           <input
             className="loginInput "
             placeholder="비밀번호를 다시 입력해주세요"

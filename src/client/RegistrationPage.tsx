@@ -23,7 +23,7 @@ const createUser = async (
   checkPassword: string
 ) => {
   if (!(isEmail(email) && isSamePassword(password, checkPassword))) {
-    return { check: false, text: '이메일이나 비밀번호이 다릅니다.' }
+    return { check: false, text: '비밀번호가 서로 다릅니다.' }
   }
 
   if (!isGoodPassword(password)) {
